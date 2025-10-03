@@ -2,12 +2,12 @@
 
 import { useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import Image from 'next/image'; // 👈 Import next/image
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
 import CyberBackground from '@/bg/CyberBackground';
 import api from '@/lib/api/axios';
+import { getImageUrl } from '@/lib/utils/imageUrl';
 
 interface Article {
   id: string;
@@ -32,20 +32,7 @@ interface Article {
   };
 }
 
-// 3D background component
-function Dummy3D() {
-  return (
-    <Canvas camera={{ position: [0, 0, 3] }} style={{ width: '100%', height: 320 }}>
-      <ambientLight intensity={0.7} />
-      <pointLight position={[5, 5, 5]} intensity={1.2} />
-      <mesh rotation={[0.5, 0.5, 0]}>
-        <boxGeometry args={[1.8, 1.8, 1.8]} />
-        <meshStandardMaterial color="#00eaff" metalness={0.7} roughness={0.2} emissive="#00eaff" emissiveIntensity={0.5} />
-      </mesh>
-      <OrbitControls enableZoom={false} enablePan={false} autoRotate autoRotateSpeed={2} />
-    </Canvas>
-  );
-}
+// Hapus dummy 3D agar jika gambar gagal, tidak menampilkan elemen 3D
 
 export default function BeritaDetailPage() {
   const params = useParams();
@@ -53,6 +40,7 @@ export default function BeritaDetailPage() {
   const [article, setArticle] = useState<Article | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -128,6 +116,9 @@ export default function BeritaDetailPage() {
     );
   }
 
+  // Resolve image URL
+  const imageUrl = article.image ? getImageUrl(article.image) : null;
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-900 relative overflow-hidden">
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -138,15 +129,18 @@ export default function BeritaDetailPage() {
         <div className="bg-white/20 backdrop-blur-xl rounded-2xl shadow-2xl border border-blue-400/30 p-8">
           {/* Article Image */}
           <div className="w-full flex justify-center mb-8">
-            {article.image ? (
-              <img 
-                src={`http://localhost:5000/uploads/${article.image}`} 
-                alt={article.title} 
-                className="object-cover rounded-xl max-h-80 w-full"
-              />
-            ) : (
-              <Dummy3D />
-            )}
+            {imageUrl && !imageError ? (
+              <div className="relative w-full h-80 rounded-xl overflow-hidden">
+                <Image
+                  src={imageUrl}
+                  alt={article.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  onError={() => setImageError(true)}
+                />
+              </div>
+            ) : null}
           </div>
 
           {/* Article Header */}
@@ -156,21 +150,17 @@ export default function BeritaDetailPage() {
                 {article.category.name}
               </span>
             )}
-            
+
             <h1 className="text-4xl font-extrabold font-orbitron text-blue-900 mb-4 neon-glow">
               {article.title}
             </h1>
-            
+
             <div className="flex items-center justify-between text-sm text-gray-600 mb-6">
               <div className="flex items-center space-x-4">
-                {article.author && (
-                  <span>Oleh: {article.author.name}</span>
-                )}
+                {article.author && <span>Oleh: {article.author.name}</span>}
                 <span>👁️ {article.viewCount} views</span>
               </div>
-              <span>
-                {formatDate(article.publishedAt || article.createdAt)}
-              </span>
+              <span>{formatDate(article.publishedAt || article.createdAt)}</span>
             </div>
           </div>
 
@@ -195,10 +185,10 @@ export default function BeritaDetailPage() {
         </div>
       </main>
       <Footer />
-      
+
       <style jsx global>{`
         .font-orbitron {
-          font-family: 'Orbitron', 'Audiowide', 'sans-serif';
+          font-family: 'Orbitron', 'Audiowide', sans-serif;
         }
         .neon-glow {
           text-shadow: 0 0 8px #00eaff, 0 0 16px #00eaff, 0 0 32px #00eaff;

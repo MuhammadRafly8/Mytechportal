@@ -19,7 +19,7 @@ export default function TentangPage() {
             TENTANG KAMI
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-            Portal berita teknologi dan informasi terkini
+            Portal berita SMKN 8 JEMBER
           </p>
         </div>
 
@@ -37,7 +37,7 @@ export default function TentangPage() {
           <div className="space-y-6 text-gray-300 leading-relaxed">
             <p>
               MyTECHPORTAL adalah portal berita dan informasi teknologi yang menyediakan 
-              berita terkini seputar dunia teknologi, pendidikan, dan perkembangan digital.
+              berita terkini seputar jurusan yang ada di smkn 8 jember.
             </p>
             
             <p>

@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import CyberBackground from '@/bg/CyberBackground';
 import { useArticles } from '@/hooks/api/useArticles';
+import { getImageUrl } from '@/lib/utils/imageUrl';
 
 interface Article {
   id: string;
@@ -13,6 +15,7 @@ interface Article {
   slug: string;
   content: string;
   image?: string;
+  imageUrl?: string;
   published: boolean;
   featured: boolean;
   viewCount: number;
@@ -29,6 +32,9 @@ interface Article {
     slug: string;
   };
 }
+
+// Placeholder fallback menggunakan data URL agar tidak 404 (inline agar tanpa import)
+const PLACEHOLDER_IMAGE = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMjIyODJhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgc3R5bGU9ImRvbWluYW50LWFzY2VudDptaWRkbGU7dGV4dC1hbmNob3I6bWlkZGxlOyIgZmlsbD0iI2NjZCI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
 
 export default function BeritaPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -137,22 +143,71 @@ export default function BeritaPage() {
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {articles.map((article: Article) => (
+              {articles.map((article: Article) => {
+                const finalImageUrl = article.imageUrl || getImageUrl(article.image);
+                console.log('Article data:', {
+                  id: article.id,
+                  title: article.title,
+                  image: article.image,
+                  imageUrl: article.imageUrl,
+                  finalUrl: finalImageUrl
+                });
+                
+                // Test if URL is accessible
+                if (finalImageUrl) {
+                  console.log(`🔍 Testing image URL: ${finalImageUrl}`);
+                  fetch(finalImageUrl, { method: 'HEAD' })
+                    .then(response => {
+                      console.log(`✅ Image ${article.title}: ${response.status} ${response.statusText}`);
+                      if (response.status === 200) {
+                        console.log(`📁 Image size: ${response.headers.get('content-length')} bytes`);
+                      }
+                    })
+                    .catch(error => {
+                      console.log(`❌ Image ${article.title}: Network error`, error);
+                    });
+                } else {
+                  console.log(`⚠️ No image URL for article: ${article.title}`);
+                }
+                
+                return (
                 <Link
                   key={article.id}
                   href={`/berita/${article.slug}`}
                   className="group bg-white/10 backdrop-blur-xl rounded-2xl border border-blue-400/30 p-6 hover:bg-white/20 hover:border-cyan-400/50 transition-all duration-300 hover:scale-105"
                 >
-                  <div className="aspect-video bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl mb-4 overflow-hidden">
-                    {article.image ? (
-                      <img
-                        src={`http://localhost:5000/uploads/${article.image}`}
-                        alt={article.title}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      />
+                  <div className="aspect-video rounded-xl mb-4 overflow-hidden bg-gray-800 relative">
+                    {article.imageUrl || article.image ? (
+                        <img
+                          src={finalImageUrl || PLACEHOLDER_IMAGE}
+                          alt={article.title}
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                          style={{ 
+                            display: 'block',
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                            backgroundColor: '#374151'
+                          }}
+                          crossOrigin="anonymous"
+                          onError={(e) => {
+                            console.log('❌ Image failed to load:', e.currentTarget.src);
+                            console.log('❌ Error details:', e);
+                            const target = e.target as HTMLImageElement;
+                            target.style.backgroundColor = '#6B7280';
+                            target.style.display = 'flex';
+                            target.style.alignItems = 'center';
+                            target.style.justifyContent = 'center';
+                            target.innerHTML = '<span style="font-size: 2rem; color: #9CA3AF;">📰</span>';
+                          }}
+                          onLoad={(e) => {
+                            console.log('✅ Image loaded successfully:', finalImageUrl);
+                            console.log('📏 Image dimensions:', e.currentTarget.naturalWidth, 'x', e.currentTarget.naturalHeight);
+                          }}
+                        />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className="text-4xl">📰</div>
+                      <div className="w-full h-full flex items-center justify-center bg-gray-600">
+                        <span className="text-4xl text-gray-400">📰</span>
                       </div>
                     )}
                   </div>
@@ -178,7 +233,8 @@ export default function BeritaPage() {
                     </div>
                   </div>
                 </Link>
-              ))}
+                );
+              })}
             </div>
 
             {/* Pagination */}
@@ -213,7 +269,7 @@ export default function BeritaPage() {
       
       <style jsx global>{`
         .font-orbitron {
-          font-family: 'Orbitron', 'Audiowide', 'sans-serif';
+          font-family: 'Orbitron', 'Audiowide', sans-serif;
         }
         .neon-glow {
           text-shadow: 0 0 8px #00eaff, 0 0 16px #00eaff, 0 0 32px #00eaff;

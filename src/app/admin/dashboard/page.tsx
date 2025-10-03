@@ -113,14 +113,14 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-end mb-4">
-        <Link
-          href="/admin/user-management"
-          className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold shadow-lg hover:scale-105 transition"
-        >
-          Manajemen User
-        </Link>
-      </div>
+        <div className="flex justify-end mb-4">
+          <Link
+            href="/admin/user-management"
+            className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold shadow-lg hover:scale-105 transition"
+          >
+            Manajemen User
+          </Link>
+        </div>
       
       {/* Statistik Card */}
       <div className="grid gap-6 mb-8 md:grid-cols-2 xl:grid-cols-4">

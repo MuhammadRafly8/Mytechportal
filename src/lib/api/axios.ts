@@ -3,11 +3,10 @@ import axios, { AxiosInstance } from 'axios';
 import { API_BASE_URL } from '@/lib/api';
 
 // Buat instance axios dengan baseURL
+// Catatan: Jangan set 'Content-Type' global ke 'application/json'
+// agar request dengan FormData (upload file) tetap terbaca oleh multer.
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Interceptor untuk menambahkan token
@@ -18,6 +17,19 @@ apiClient.interceptors.request.use(
       const token = localStorage.getItem('token');
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
+    // Jika payload adalah FormData, biarkan browser yang set boundary.
+    // Hapus Content-Type agar tidak mengoverride multipart boundary.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      if (config.headers && 'Content-Type' in config.headers) {
+        delete (config.headers as any)['Content-Type'];
+      }
+    } else {
+      // Untuk payload non-FormData, set JSON secara eksplisit jika belum ada
+      if (config.headers && !config.headers['Content-Type']) {
+        config.headers['Content-Type'] = 'application/json';
       }
     }
     return config;

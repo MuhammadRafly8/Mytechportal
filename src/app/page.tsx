@@ -8,6 +8,7 @@ import DepartmentCard from "@/components/DepartmentCard";
 import FeaturedNewsCard from "@/components/FeaturedNewsCard";
 import CyberBackground from "@/bg/CyberBackground";
 import Link from "next/link";
+import { getImageUrl } from "@/lib/utils/imageUrl";
 
 // Department/Jurusan data
 const departments = [
@@ -206,7 +207,7 @@ export default function Home() {
                   title={article.title}
                   content={article.content}
                   date={article.createdAt}
-                  imageUrl={article.image ? `http://localhost:5000/uploads/${article.image}` : undefined}
+                  imageUrl={article.imageUrl || article.image}
                   isFeatured={index === 0}
                   index={index}
                 />

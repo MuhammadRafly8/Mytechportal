@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { getImageUrl } from '@/lib/utils/imageUrl';
 
 // Tipe data props
 interface NewsListCardProps {
@@ -35,7 +36,7 @@ const NewsListCard: React.FC<NewsListCardProps> = ({ id, title, content, date, t
         {imageUrl && !imageLoadError ? (
           // Gunakan next/image dengan fill dan objectFit
           <Image
-            src={imageUrl}
+            src={getImageUrl(imageUrl) || imageUrl}
             alt={`Gambar untuk artikel: ${title}`}
             fill // Isi seluruh parent container
             style={{ objectFit: 'cover' }} // object-cover

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { getImageUrl } from '@/lib/utils/imageUrl';
 
 interface FeaturedNewsCardProps {
   id: string;
@@ -65,14 +65,11 @@ const FeaturedNewsCard: React.FC<FeaturedNewsCardProps> = ({
       {/* Image Container */}
       <div className="h-48 relative overflow-hidden">
         {imageUrl && !imageLoadError ? (
-          <Image
-            src={imageUrl}
+          <img
+            src={getImageUrl(imageUrl) || imageUrl}
             alt={title}
-            fill
-            style={{ objectFit: 'cover' }}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             onError={handleImageError}
-            className="transition-transform duration-500 group-hover:scale-110"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-900/60 to-purple-900/60 flex items-center justify-center relative">

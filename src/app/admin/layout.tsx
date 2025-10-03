@@ -2,18 +2,20 @@
 
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter, usePathname } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAuthInit } from '@/hooks/useAuth'
 import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 export default function AdminLayout({
   children
 }: {
   children: React.ReactNode
 }) {
-  const { isAuthenticated, logout, setToken } = useAuth()
+  const { isAuthenticated, logout, setToken, user } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
+  const [userRole, setUserRole] = useState<string | null>(null)
   useAuthInit();
 
   // Inisialisasi ulang token dan user ke zustand jika ada di localStorage/cookie
@@ -23,6 +25,19 @@ export default function AdminLayout({
       setToken(token);
     }
   }, []);
+
+  // Get user role from token
+  useEffect(() => {
+    const token = localStorage.getItem('token') || Cookies.get('token');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token) as any;
+        setUserRole(decoded?.role || null);
+      } catch (error) {
+        console.error('Error decoding token:', error);
+      }
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated && pathname !== '/admin/login') {
@@ -44,9 +59,17 @@ export default function AdminLayout({
                   <a href="/admin/dashboard" className="text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 border-blue-500 text-sm font-medium">
                     Dashboard
                   </a>
+                  {userRole === 'admin' && (
+                    <a href="/admin/user-management" className="text-gray-500 hover:text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium">
+                      Manajemen User
+                    </a>
+                  )}
                 </div>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm text-gray-600">
+                  {user?.name} ({userRole})
+                </span>
                 <button
                   onClick={() => {
                     logout()
